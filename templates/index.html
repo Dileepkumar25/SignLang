@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hand Gesture Recognition</title>
+
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .container {
+        background: rgba(0,0,0,0.6);
+        padding: 25px 35px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 0 25px rgba(0,255,255,0.3);
+        width: 750px;
+    }
+
+    h1 {
+        margin-bottom: 15px;
+        color: #00ffd5;
+        letter-spacing: 1px;
+    }
+
+    video {
+        border-radius: 12px;
+        border: 3px solid #00ffd5;
+        margin-top: 10px;
+    }
+
+    .controls {
+        margin-top: 15px;
+    }
+
+    button {
+        background: #00ffd5;
+        border: none;
+        color: black;
+        padding: 10px 20px;
+        margin: 0 10px;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    button:hover {
+        background: #00bfa6;
+        transform: scale(1.05);
+    }
+
+    button:disabled {
+        background: gray;
+        cursor: not-allowed;
+    }
+
+    .result-box {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 10px;
+        background: rgba(0,0,0,0.4);
+        font-size: 28px;
+        color: #00ff88;
+        min-height: 50px;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>🤟 Hand Gesture Recognition</h1>
+
+    <video id="video" width="640" height="480" autoplay muted></video>
+    <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+
+    <div class="controls">
+        <button id="startBtn">Start Webcam</button>
+        <button id="stopBtn" disabled>Stop Webcam</button>
+    </div>
+
+    <div class="result-box" id="result">
+        Prediction will appear here
+    </div>
+</div>
+
+<script>
+let stream = null;
+let intervalId = null;
+
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const result = document.getElementById("result");
+const startBtn = document.getElementById("startBtn");
+const stopBtn = document.getElementById("stopBtn");
+
+startBtn.onclick = async () => {
+    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    video.srcObject = stream;
+
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+
+    intervalId = setInterval(sendFrame, 800);
+};
+
+stopBtn.onclick = () => {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+    }
+
+    clearInterval(intervalId);
+    result.innerText = "Webcam stopped";
+
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+};
+
+function sendFrame() {
+    if (!video.srcObject) return;
+
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = canvas.toDataURL("image/jpeg").split(",")[1];
+
+    fetch("/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: imageData })
+    })
+    .then(res => res.json())
+    .then(data => {
+        result.innerText = "Prediction: " + data.prediction;
+    });
+}
+</script>
+
+</body>
+</html>
