@@ -1,17 +1,19 @@
-# 1. Base environment
 FROM python:3.10
 
-# 2. Working folder
 WORKDIR /app
 
-# 3. Copy project files
-COPY . .
+# ✅ Install system dependencies (FIX)
+RUN apt-get update && apt-get install -y \
+    libgl1 \
+    libglib2.0-0
 
-# 4. Install dependencies
+# Copy requirements
+COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# 5. Expose port (Flask default)
+# Copy project
+COPY . .
+
 EXPOSE 5000
 
-# 6. Run app
 CMD ["python", "app.py"]
