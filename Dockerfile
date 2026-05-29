@@ -1,19 +1,16 @@
-#installing python 3.10 because it supports only 3.10
-FROM python:3.10
+FROM python:3.11
 
 WORKDIR /app
 
-# ✅ Install system dependencies (FIX)
+COPY . .
+
 RUN apt-get update && apt-get install -y \
     libgl1 \
-    libglib2.0-0
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements
-COPY requirements.txt .
+RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
-
-# Copy project
-COPY . .
 
 EXPOSE 5000
 
