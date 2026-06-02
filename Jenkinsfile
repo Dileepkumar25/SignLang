@@ -3,7 +3,7 @@ pipeline {
 
     stages {
 
-        stage('Clone Code') {
+        stage('Checkout') {
             steps {
                 checkout scm
             }
@@ -11,7 +11,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t sign-language-app:latest .'
+                sh 'docker build -t sign-language-app .'
             }
         }
 
@@ -21,16 +21,15 @@ pipeline {
             }
         }
 
-        stage('Run New Container') {
+        stage('Run Container') {
             steps {
                 sh '''
                 docker run -d \
                 --name sign-language-app \
                 -p 5000:5000 \
-                sign-language-app:latest
+                sign-language-app
                 '''
             }
         }
-
     }
 }
