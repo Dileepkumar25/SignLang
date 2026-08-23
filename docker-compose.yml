@@ -1,0 +1,21 @@
+services:
+
+  sign-language-app:
+    build: .
+    container_name: sign-language-app
+    expose:
+      - "5000"
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: signlang-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - sign-language-app
+    restart: unless-stopped
